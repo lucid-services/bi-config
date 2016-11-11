@@ -1,0 +1,30 @@
+{
+  "name": "bi-config",
+  "version": "0.1.0",
+  "description": "Generic config module",
+  "main": "lib/index.js",
+  "testFramework": "mocha",
+  "author": "Bohemia Interactive",
+  "private": true,
+  "scripts": {
+    "coverage": "./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- --ui bdd -R spec 'tests/**/*.js' -t 5000",
+    "tests": "mocha --ui bdd --colors --check-leaks -t 5000 --reporter spec 'tests/**/*.js'",
+    "unit-tests": "./node_modules/mocha/bin/mocha --ui bdd --colors --check-leaks -t 5000 --reporter spec 'tests/unit/**/*.js'",
+    "test": "npm run tests"
+  },
+  "dependencies": {
+    "bi-logger": "git+ssh://git@webdev-git.czupc.bistudio.com:juraj/logger.git#master",
+    "json5": "0.5.0",
+    "lodash.merge": "^4.6.0",
+    "nconf": "0.8.*",
+    "yargs": "^5.0.0"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "istanbul": "^0.4.3",
+    "mocha": "^2.5.3",
+    "sinon": "^1.17.3",
+    "sinon-chai": "^2.8.0",
+    "tmp": "0.0.29"
+  }
+}
