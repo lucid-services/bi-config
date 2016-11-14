@@ -15,7 +15,9 @@
   "dependencies": {
     "bi-logger": "git+ssh://git@webdev-git.czupc.bistudio.com:juraj/logger.git#master",
     "json5": "0.5.0",
+    "lodash.get": "^4.4.2",
     "lodash.merge": "^4.6.0",
+    "lodash.set": "^4.3.2",
     "nconf": "0.8.*",
     "yargs": "^5.0.0"
   },
@@ -25,6 +27,7 @@
     "mocha": "^2.5.3",
     "sinon": "^1.17.3",
     "sinon-chai": "^2.8.0",
-    "tmp": "0.0.29"
+    "tmp": "0.0.29",
+    "rewire": "^2.5.2"
   }
 }
