@@ -125,8 +125,9 @@ describe('Config', function() {
                 this.config.hasFileConfig.should.be.equal(true);
             });
 
-            it('should set the `hasFileConfig` to false when an error occurs while loading a file', function() {
+            it('should set the `hasFileConfig` to false when config file is not found', function() {
                 var error = new Error('test error');
+                error.code = 'MODULE_NOT_FOUND';
                 var requireStub = sinon.stub();
 
                 requireStub.throws(error);
@@ -347,10 +348,10 @@ describe('Config', function() {
             }
         });
 
-        describe('--get, -g option', function() {
+        describe('--get-conf, -g option', function() {
             it('should print option value', function() {
                 var result = this.spawn([
-                    '--get',
+                    '--get-conf',
                     'couchbase.buckets'
                 ]);
 
