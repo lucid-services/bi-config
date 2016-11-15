@@ -1,4 +1,5 @@
 var fs           = require('fs');
+var path         = require('path');
 var rewire       = require('rewire');
 var sinon        = require('sinon');
 var chai         = require('chai');
@@ -6,6 +7,7 @@ var sinonChai    = require("sinon-chai");
 var tmp          = require('tmp');
 var childProcess = require('child_process');
 var json5        = require('json5');
+var nconf        = require('nconf');
 
 ConfigError = require('../lib/error/configError.js');
 
@@ -49,8 +51,9 @@ describe('Config', function() {
         var tmpDir = this.tmpDir = tmp.dirSync({unsafeCleanup: true});
 
         fs.mkdirSync(`${tmpDir.name}/config`);
+        fs.mkdirSync(`${tmpDir.name}/config/production`);
         fs.writeFileSync(
-            `${tmpDir.name}/config/settings.conf.json5`,
+            `${tmpDir.name}/config/production/settings.conf.json5`,
             json5.stringify(this.configData, null, 4)
         );
     });
@@ -78,6 +81,10 @@ describe('Config', function() {
             this.processCwdStub.restore();
         });
 
+        it('should exports nconf module', function() {
+            this.config.should.have.property('nconf').that.is.an.instanceof(nconf.Provider);
+        });
+
         describe('$getNodeEnvVar', function() {
             it('should return NODE_ENV variable if set', function() {
                 var env = 'production';
@@ -100,19 +107,21 @@ describe('Config', function() {
 
                 this.processCwdStub.returns();
                 this.config.$getDefaultConfigPath().should.be.equal(
-                    `${cwd}/${this.config.$getNodeEnvVar()}/config/settings.conf.json5`
+                    `${cwd}/config/${this.config.$getNodeEnvVar()}/settings.conf.json5`
                 );
             });
         });
 
         describe('$getFileOptions', function() {
             it('should return loaded json5 file for given file path', function() {
-                var data = this.config.$getFileOptions(`${this.tmpDir.name}/config/settings.conf.json5`);
+                var path = `${this.tmpDir.name}/config/production/settings.conf.json5`;
+                var data = this.config.$getFileOptions(path);
                 data.should.be.eql(this.configData);
             });
 
             it('should set the `hasFileConfig` option to true when the file config is loaded', function() {
-                this.config.$getFileOptions(`${this.tmpDir.name}/config/settings.conf.json5`);
+                var path = `${this.tmpDir.name}/config/production/settings.conf.json5`;
+                this.config.$getFileOptions(path);
                 this.config.hasFileConfig.should.be.equal(true);
             });
 
@@ -218,7 +227,7 @@ describe('Config', function() {
                 this.config.__set__({
                     argv: {
                         _: [
-                            'config',
+                            'fileConfigPath',
                             '"incorrect/config/option"'
                         ],
                         config: 'path/to/config/file'
@@ -226,7 +235,7 @@ describe('Config', function() {
                 });
 
                 this.config.$getShellOptions().should.be.eql({
-                    config: 'path/to/config/file'
+                    fileConfigPath: 'path/to/config/file'
                 });
             });
 
@@ -234,7 +243,7 @@ describe('Config', function() {
                 this.config.__set__({
                     argv: {
                         _: [
-                            'config',
+                            'fileConfigPath',
                             '"incorrect/config/option"'
                         ]
                     }
@@ -245,13 +254,159 @@ describe('Config', function() {
         });
 
         describe('initialize', function() {
-            
+            it('should setup default config object', function() {
+                var defaults = this.config.nconf.stores.defaults.store;
+                defaults.should.be.eql({
+                    fileConfigPath: null,
+                    type: 'literal'
+                });
+            });
+
+            it('should overwrite file config options by those defined as shell positional arguments', function() {
+                var path = `${this.tmpDir.name}/config/production/settings.conf.json5`;
+
+                this.config.__set__({
+                    'process.env.NODE_ENV': 'production'
+                });
+                this.config.__set__({
+                    argv: {
+                        _: [
+                            'couchbase.host',
+                            '"127.0.0.1:8091"',
+                            'listen',
+                            '{public: 3000, private: 3001}',
+                            'some.new.option',
+                            '"value"'
+                        ]
+                    }
+                });
+
+                this.config.initialize();
+
+
+                var defaults = this.config.nconf.stores.defaults.store;
+                defaults.should.be.eql({
+                    fileConfigPath: path,
+                    type: 'literal',
+                    couchbase: {
+                        host: '127.0.0.1:8091',
+                        buckets: {
+                            main: {
+                                bucket: 'test'
+                            }
+                        }
+                    },
+                    failOnErr: true,
+                    listen: {
+                        public: 3000,
+                        private: 3001,
+                    },
+                    some: {
+                        new: {
+                            option: 'value'
+                        }
+                    }
+                });
+            });
+        });
+
+        describe('get', function() {
+            before(function() {
+                this.getSpy = sinon.spy(this.config.nconf, 'get');
+            });
+
+            it('should call nconf.get method with provide property path', function() {
+                var propPath = 'couchbase:host';
+                this.config.get(propPath);
+                this.getSpy.should.have.been.calledOnce;
+                this.getSpy.should.have.been.calledWith(propPath);
+            });
         });
     });
 
     describe('as cli app', function() {
         before(function() {
-            
+            this.spawn = spawn;
+
+            function spawn(args) {
+                var cmd = path.normalize(__dirname + '/../lib/index.js');
+                args.unshift(cmd);
+
+                var result = childProcess.spawnSync('node', args, {
+                    cwd: this.tmpDir.name,
+                    env: {
+                        NODE_ENV: 'production'
+                    }
+                });
+
+                if (result.error) {
+                    throw result.error;
+                }
+
+                return result;
+            }
+        });
+
+        describe('--get, -g option', function() {
+            it('should print option value', function() {
+                var result = this.spawn([
+                    '--get',
+                    'couchbase.buckets'
+                ]);
+
+                var stdout = json5.parse(result.stdout.toString());
+                result.status.should.be.equal(0);
+                stdout.should.be.eql({
+                    main: {
+                        bucket: 'test'
+                    }
+                });
+            });
+
+            it('should print option value', function() {
+                var result = this.spawn([
+                    '-g',
+                    'failOnErr'
+                ]);
+
+                var stdout = json5.parse(result.stdout.toString());
+                result.status.should.be.equal(0);
+                stdout.should.be.equal(true);
+            });
+
+            it('should exit with 1 and print "undefined" when there is not such option', function() {
+                var result = this.spawn([
+                    '-g',
+                    'some.options.which.does.not.exist'
+                ]);
+
+                result.status.should.be.equal(1);
+                result.stderr.toString().should.be.equal('undefined\n');
+            });
+        });
+
+        describe('shell positional argument', function() {
+            it('(positional args) should overwrite file config options', function() {
+                var result = this.spawn([
+                    '-g',
+                    'couchbase.host',
+                    'couchbase.host',
+                    '"127.0.0.3"'
+                ]);
+
+                result.status.should.be.equal(0);
+                result.stdout.toString().should.be.equal('127.0.0.3\n');
+            });
+
+            it('should exit with 1 when we provide invalid number of positional args', function() {
+                var result = this.spawn([
+                    'couchbase.host',
+                    '"127.0.0.3"',
+                    'another.config.option.with.no.value'
+                ]);
+
+                result.status.should.be.equal(1);
+            });
         });
     });
 });
