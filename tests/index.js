@@ -8,6 +8,7 @@ var tmp          = require('tmp');
 var childProcess = require('child_process');
 var json5        = require('json5');
 var nconf        = require('nconf');
+var _merge       = require('lodash.merge');
 
 ConfigError = require('../lib/error/configError.js');
 
@@ -22,6 +23,11 @@ chai.should();
 describe('Config', function() {
     before(function() {
         this.configFileContent = `{
+            baseUrl: '127.0.0.1',
+            pointer: {$ref: '#/couchbase'},
+            memcached: {
+                hosts: [{$ref: '#/baseUrl'}]
+            },
             couchbase: {
                 host: 'localhost',
                 buckets: {
@@ -113,10 +119,15 @@ describe('Config', function() {
         });
 
         describe('$getFileOptions', function() {
-            it('should return loaded json5 file for given file path', function() {
+            it('should return loaded json5 file for given file path with resolved json pointers', function() {
                 var path = `${this.tmpDir.name}/config/production/settings.conf.json5`;
                 var data = this.config.$getFileOptions(path);
-                data.should.be.eql(this.configData);
+                var expected = _merge({}, this.configData);
+                expected.pointer = expected.couchbase;
+                expected.memcached = {
+                    hosts: ['127.0.0.1']
+                };
+                data.should.be.eql(expected);
             });
 
             it('should set the `hasFileConfig` option to true when the file config is loaded', function() {
@@ -287,10 +298,22 @@ describe('Config', function() {
 
                 var defaults = this.config.nconf.stores.defaults.store;
                 defaults.should.be.eql({
+                    baseUrl: '127.0.0.1',
                     fileConfigPath: path,
                     type: 'literal',
                     couchbase: {
                         host: '127.0.0.1:8091',
+                        buckets: {
+                            main: {
+                                bucket: 'test'
+                            }
+                        }
+                    },
+                    memcached: {
+                        hosts: ['127.0.0.1']
+                    },
+                    pointer: {
+                        host: 'localhost',
                         buckets: {
                             main: {
                                 bucket: 'test'
