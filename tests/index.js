@@ -57,9 +57,8 @@ describe('Config', function() {
         var tmpDir = this.tmpDir = tmp.dirSync({unsafeCleanup: true});
 
         fs.mkdirSync(`${tmpDir.name}/config`);
-        fs.mkdirSync(`${tmpDir.name}/config/production`);
         fs.writeFileSync(
-            `${tmpDir.name}/config/production/settings.conf.json5`,
+            `${tmpDir.name}/config/settings.conf.json5`,
             json5.stringify(this.configData, null, 4)
         );
     });
@@ -113,14 +112,14 @@ describe('Config', function() {
 
                 this.processCwdStub.returns();
                 this.config.$getDefaultConfigPath().should.be.equal(
-                    `${cwd}/config/${this.config.$getNodeEnvVar()}/settings.conf.json5`
+                    `${cwd}/config/settings.conf.json5`
                 );
             });
         });
 
         describe('$getFileOptions', function() {
             it('should return loaded json5 file for given file path with resolved json pointers', function() {
-                var path = `${this.tmpDir.name}/config/production/settings.conf.json5`;
+                var path = `${this.tmpDir.name}/config/settings.conf.json5`;
                 var data = this.config.$getFileOptions(path);
                 var expected = _merge({}, this.configData);
                 expected.pointer = expected.couchbase;
@@ -131,7 +130,7 @@ describe('Config', function() {
             });
 
             it('should set the `hasFileConfig` option to true when the file config is loaded', function() {
-                var path = `${this.tmpDir.name}/config/production/settings.conf.json5`;
+                var path = `${this.tmpDir.name}/config/settings.conf.json5`;
                 this.config.$getFileOptions(path);
                 this.config.hasFileConfig.should.be.equal(true);
             });
@@ -275,7 +274,7 @@ describe('Config', function() {
             });
 
             it('should overwrite file config options by those defined as shell positional arguments', function() {
-                var path = `${this.tmpDir.name}/config/production/settings.conf.json5`;
+                var path = `${this.tmpDir.name}/config/settings.conf.json5`;
 
                 this.config.__set__({
                     'process.env.NODE_ENV': 'production'
