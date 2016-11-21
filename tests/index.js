@@ -345,6 +345,17 @@ describe('Config', function() {
                 this.getSpy.should.have.been.calledWith(propPath);
             });
         });
+
+        describe('createLiteralProvider', function() {
+            it('should return new Provider object with provided config data', function() {
+                var data = {
+                    some: 'value'
+                };
+                var provider = this.config.createLiteralProvider(data);
+                provider.should.be.instanceof(nconf.Provider);
+                provider.get().should.be.eql(data);
+            });
+        });
     });
 
     describe('as cli app', function() {
