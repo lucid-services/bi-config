@@ -24,6 +24,7 @@ describe('Config', function() {
     before(function() {
         this.configFileContent = `{
             baseUrl: '127.0.0.1',
+            failOnErr: false, // a property with false value should be on top of the tree
             pointer: {$ref: '#/couchbase'},
             memcached: {
                 hosts: [{$ref: '#/baseUrl'}]
@@ -36,7 +37,6 @@ describe('Config', function() {
                     }
                 }
             },
-            failOnErr: true,
             listen: {
                 public: '127.0.0.1:3000',
                 private: '127.0.0.1:3001',
@@ -320,7 +320,7 @@ describe('Config', function() {
                             }
                         }
                     },
-                    failOnErr: true,
+                    failOnErr: false,
                     listen: {
                         public: 3000,
                         private: 3001,
@@ -395,7 +395,7 @@ describe('Config', function() {
 
                 var stdout = json5.parse(result.stdout.toString());
                 result.status.should.be.equal(0);
-                stdout.should.be.equal(true);
+                stdout.should.be.equal(false);
             });
 
             it('should exit with 1 and print "undefined" when there is not such option', function() {
