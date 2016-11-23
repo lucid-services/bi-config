@@ -419,6 +419,60 @@ describe('Config', function() {
             });
         });
 
+        describe('--json5 option', function() {
+            it('should print json data in json5 format', function() {
+                var result = this.spawn([
+                    '--get-conf',
+                    'couchbase.buckets',
+                    '--json5'
+                ]);
+
+                var stdout = result.stdout.toString();
+                result.status.should.be.equal(0);
+                stdout.should.be.equal('{\n' +
+                '    main: {\n'              +
+                '        bucket: "test"\n'   +
+                '    }\n'                    +
+                '}\n')
+            });
+        });
+
+        describe('--offset option', function() {
+            it('should print json data with correct space offset set', function() {
+                var result = this.spawn([
+                    '--get-conf',
+                    'couchbase.buckets',
+                    '--offset',
+                    '2'
+                ]);
+
+                var stdout = result.stdout.toString();
+                result.status.should.be.equal(0);
+                stdout.should.be.equal('{\n' +
+                '  "main": {\n'              +
+                '    "bucket": "test"\n'     +
+                '  }\n'                      +
+                '}\n')
+            });
+
+            it('should replace space character with given string value in JSON output', function() {
+                var result = this.spawn([
+                    '--get-conf',
+                    'couchbase.buckets',
+                    '--offset',
+                    '__'
+                ]);
+
+                var stdout = result.stdout.toString();
+                result.status.should.be.equal(0);
+                stdout.should.be.equal('{\n' +
+                '__"main": {\n'              +
+                '____"bucket": "test"\n'     +
+                '__}\n'                      +
+                '}\n')
+            });
+        });
+
         describe('shell positional argument', function() {
             it('(positional args) should overwrite file config options', function() {
                 var result = this.spawn([
