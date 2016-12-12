@@ -473,7 +473,12 @@ describe('Config', function() {
             });
         });
 
-        describe('shell positional argument', function() {
+        //describe('--parse-positional-args option', function() {
+            //it('should not parse positional arguments from shell when the option is set to false', function() {
+            //});
+        //});
+
+        describe('shell positional arguments', function() {
             it('(positional args) should overwrite file config options', function() {
                 var result = this.spawn([
                     '-g',
