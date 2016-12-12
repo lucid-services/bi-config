@@ -1,6 +1,6 @@
 {
   "name": "bi-config",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "Generic config module",
   "main": "lib/index.js",
   "testFramework": "mocha",
@@ -12,7 +12,7 @@
     "test": "npm run tests"
   },
   "dependencies": {
-    "bi-logger": "git+ssh://git@webdev-git.czupc.bistudio.com:juraj/logger.git#master",
+    "bi-logger": "^1.0.0",
     "json5": "0.5.0",
     "lodash.forown": "^4.4.0",
     "lodash.get": "^4.4.2",
