@@ -473,10 +473,21 @@ describe('Config', function() {
             });
         });
 
-        //describe('--parse-positional-args option', function() {
-            //it('should not parse positional arguments from shell when the option is set to false', function() {
-            //});
-        //});
+        describe('--parse-pos-args option', function() {
+            it('should not parse positional arguments from shell when the option is set to false', function() {
+                var result = this.spawn([
+                    '--parse-pos-args',
+                    false,
+                    '--get-conf',
+                    'couchbase.host',
+                    'couchbase.host',
+                    'valuewhichwillnotbeset'
+                ]);
+
+                result.status.should.be.equal(0);
+                result.stdout.toString().should.be.equal('localhost\n');
+            });
+        });
 
         describe('shell positional arguments', function() {
             it('(positional args) should overwrite file config options', function() {
