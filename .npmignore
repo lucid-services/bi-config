@@ -3,6 +3,7 @@
 .tern-project
 .travis.yml
 .jsdoc.json
+.npmrc
 *.vim
 README.md
 npm-debug.log

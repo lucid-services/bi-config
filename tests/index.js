@@ -273,6 +273,50 @@ describe('Config', function() {
                 });
             });
 
+            it('should overwrite config options by those passed to the method as the argument', function() {
+                var path = `${this.tmpDir.name}/config/settings.conf.json5`;
+
+                this.config.__set__({
+                    'process.env.NODE_ENV': 'production'
+                });
+                this.config.__set__({
+                    argv: {
+                        _: [
+                            'couchbase.host',
+                            '"127.0.0.1:8091"',
+                            'listen',
+                            '{public: 3000, private: 3001}',
+                            'some.new.option',
+                            '"value"'
+                        ]
+                    }
+                });
+
+                this.config.initialize({
+                    failOnErr: true,
+                    couchbase: {
+                        host: '127.0.0.1:9999'
+                    }
+                });
+
+
+                var defaults = this.config.nconf.stores.defaults.store;
+
+                defaults.should.have.property('listen').that.is.eql({
+                    public: 3000,
+                    private: 3001
+                });
+                defaults.should.have.property('failOnErr').that.is.eql(true);
+                defaults.should.have.property('couchbase').that.is.eql({
+                    host: '127.0.0.1:9999',
+                    buckets: {
+                        main: {
+                            bucket: 'test'
+                        }
+                    }
+                });
+            });
+
             it('should overwrite file config options by those defined as shell positional arguments', function() {
                 var path = `${this.tmpDir.name}/config/settings.conf.json5`;
 
@@ -473,7 +517,23 @@ describe('Config', function() {
             });
         });
 
-        describe('shell positional argument', function() {
+        describe('--parse-pos-args option', function() {
+            it('should not parse positional arguments from shell when the option is set to false', function() {
+                var result = this.spawn([
+                    '--parse-pos-args',
+                    false,
+                    '--get-conf',
+                    'couchbase.host',
+                    'couchbase.host',
+                    'valuewhichwillnotbeset'
+                ]);
+
+                result.status.should.be.equal(0);
+                result.stdout.toString().should.be.equal('localhost\n');
+            });
+        });
+
+        describe('shell positional arguments', function() {
             it('(positional args) should overwrite file config options', function() {
                 var result = this.spawn([
                     '-g',
