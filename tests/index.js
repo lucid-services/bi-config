@@ -58,7 +58,7 @@ describe('Config', function() {
 
         fs.mkdirSync(`${tmpDir.name}/config`);
         fs.writeFileSync(
-            `${tmpDir.name}/config/settings.conf.json5`,
+            `${tmpDir.name}/config/config.json5`,
             json5.stringify(this.configData, null, 4)
         );
     });
@@ -112,14 +112,14 @@ describe('Config', function() {
 
                 this.processCwdStub.returns();
                 this.config.$getDefaultConfigPath().should.be.equal(
-                    `${cwd}/config/settings.conf.json5`
+                    `${cwd}/config/config.json5`
                 );
             });
         });
 
         describe('$getFileOptions', function() {
             it('should return loaded json5 file for given file path with resolved json pointers', function() {
-                var path = `${this.tmpDir.name}/config/settings.conf.json5`;
+                var path = `${this.tmpDir.name}/config/config.json5`;
                 var data = this.config.$getFileOptions(path);
                 var expected = _merge({}, this.configData);
                 expected.pointer = expected.couchbase;
@@ -130,7 +130,7 @@ describe('Config', function() {
             });
 
             it('should set the `hasFileConfig` option to true when the file config is loaded', function() {
-                var path = `${this.tmpDir.name}/config/settings.conf.json5`;
+                var path = `${this.tmpDir.name}/config/config.json5`;
                 this.config.$getFileOptions(path);
                 this.config.hasFileConfig.should.be.equal(true);
             });
@@ -146,13 +146,13 @@ describe('Config', function() {
                     require: requireStub
                 });
 
-                data = this.config.$getFileOptions(`${this.tmpDir.name}/config/settings.conf.json5`);
+                data = this.config.$getFileOptions(`${this.tmpDir.name}/config/config.json5`);
                 data.should.be.eql({});
                 this.config.hasFileConfig.should.be.equal(false);
             });
 
             it('should throw a SyntaxError when there is a problem with parsing json5 config file', function() {
-                var configPath = `${this.tmpDir.name}/config/config.json5`;
+                var configPath = `${this.tmpDir.name}/config/invalid_config.json5`;
 
                 fs.writeFileSync(
                     configPath,
@@ -274,7 +274,7 @@ describe('Config', function() {
             });
 
             it('should overwrite config options by those passed to the method as the argument', function() {
-                var path = `${this.tmpDir.name}/config/settings.conf.json5`;
+                var path = `${this.tmpDir.name}/config/config.json5`;
 
                 this.config.__set__({
                     'process.env.NODE_ENV': 'production'
@@ -318,7 +318,7 @@ describe('Config', function() {
             });
 
             it('should overwrite file config options by those defined as shell positional arguments', function() {
-                var path = `${this.tmpDir.name}/config/settings.conf.json5`;
+                var path = `${this.tmpDir.name}/config/config.json5`;
 
                 this.config.__set__({
                     'process.env.NODE_ENV': 'production'
