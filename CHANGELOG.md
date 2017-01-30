@@ -1,4 +1,4 @@
-## FUTURE
+## 0.7.1
 
 * [FIXED] default config filename changed to `config.json5` from (`settings.conf.json5`) - the deploy process expect config under correct filename
 
