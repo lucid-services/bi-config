@@ -1,6 +1,6 @@
 {
   "name": "bi-config",
-  "version": "0.7.2",
+  "version": "0.7.3",
   "description": "Generic config module",
   "main": "lib/index.js",
   "testFramework": "mocha",
