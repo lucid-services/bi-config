@@ -1,4 +1,4 @@
-## FUTURE
+## 0.7.3
 
 * [FIXED] `config` shell option was being ignored when `parse-pos-args`==false
 
