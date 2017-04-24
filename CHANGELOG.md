@@ -1,3 +1,7 @@
+## 0.7.3
+
+* [FIXED] `config` shell option was being ignored when `parse-pos-args`==false
+
 ## 0.7.2
 
 * [FIXED] relative config urls should be resolved before we attempt to require the config file
