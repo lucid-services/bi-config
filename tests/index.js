@@ -259,6 +259,20 @@ describe('Config', function() {
                 });
             });
 
+            it('should return an object with correct `config` option (2)', function() {
+                this.config.__set__({
+                    argv: {
+                        _: [],
+                        'parse-pos-args': false,
+                        config: 'path/to/config/file'
+                    }
+                });
+
+                this.config.$getShellOptions().should.be.eql({
+                    fileConfigPath: 'path/to/config/file'
+                });
+            });
+
             it('should not include reserved `config` option if included as a positional argument', function() {
                 this.config.__set__({
                     argv: {
