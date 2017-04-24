@@ -151,6 +151,15 @@ describe('Config', function() {
                 this.config.hasFileConfig.should.be.equal(false);
             });
 
+            it('should call path.resolve with provided config path', function() {
+                var cfgPath = `../config/config.json5`;
+                var pathResolveSpy = sinon.spy(path, 'resolve');
+                this.config.$getFileOptions(cfgPath);
+                pathResolveSpy.should.have.been.calledWithExactly(cfgPath);
+
+                pathResolveSpy.restore();
+            });
+
             it('should throw a SyntaxError when there is a problem with parsing json5 config file', function() {
                 var configPath = `${this.tmpDir.name}/config/invalid_config.json5`;
 
