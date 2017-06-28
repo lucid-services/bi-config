@@ -405,11 +405,40 @@ describe('Config', function() {
                 this.getSpy = sinon.spy(this.config.nconf, 'get');
             });
 
+            after(function() {
+                this.getSpy.restore();
+            });
+
             it('should call nconf.get method with provide property path', function() {
                 var propPath = 'couchbase:host';
                 this.config.get(propPath);
                 this.getSpy.should.have.been.calledOnce;
                 this.getSpy.should.have.been.calledWith(propPath);
+            });
+        });
+
+        describe('getOrFail', function() {
+            before(function() {
+                this.getSpy = sinon.spy(this.config.nconf, 'get');
+            });
+
+            after(function() {
+                this.getSpy.restore();
+            });
+
+            it('should call nconf.get method with provide property path', function() {
+                var propPath = 'type';
+                this.config.getOrFail(propPath);
+                this.getSpy.should.have.been.calledOnce;
+                this.getSpy.should.have.been.calledWith(propPath);
+            });
+
+            it('should throw an Error when provided option value is not set (aka. undefined)', function() {
+                var self = this;
+
+                expect(function() {
+                    self.config.getOrFail('non-existing-key');
+                }).to.throw(Error);
             });
         });
 
