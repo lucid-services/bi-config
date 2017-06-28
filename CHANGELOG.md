@@ -1,4 +1,4 @@
-## FUTURE
+## 1.0.0
 
 * [ADDED] `getOrFail` method
 * [REMOVED] `bi-logger` dependency
