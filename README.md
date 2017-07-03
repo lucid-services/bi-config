@@ -1,12 +1,12 @@
 # Config module
 
 
-Loads config file from path which defaults to `/config/NODE_ENV/settings.conf.json5`. `NODE_ENV` defaults to `development` string value.
-To the above rule an exeption applies for default production config file path which is expected to be located at `config/settings.conf.json5` - It's searched for when `NODE_ENV='production'`
+Loads config file from path which defaults to `/config/NODE_ENV/config.json5`. `NODE_ENV` defaults to `development` string value.
+To the above rule an exeption applies for default production config file path which is expected to be located at `config/config.json5` - It's searched for when `NODE_ENV='production'`
 
 ## How to use
 
-example config in `config/development/settings.conf.json5`
+example config in `config/development/config.json5`
 ```json
 {
   "global": {
