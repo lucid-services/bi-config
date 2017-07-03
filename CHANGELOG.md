@@ -1,4 +1,4 @@
-## FUTURE
+## 1.1.0
 
 * [ADDED] - `$join` keyword
 * [FIXED] - nested json pointers `$ref` were not being resolved in some cases
