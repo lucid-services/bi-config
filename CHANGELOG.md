@@ -1,3 +1,8 @@
+## FUTURE
+
+* [ADDED] - `$join` keyword
+* [FIXED] - nested json pointers `$ref` were not being resolved in some cases
+
 ## 1.0.0
 
 * [ADDED] `getOrFail` method

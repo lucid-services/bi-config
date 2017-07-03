@@ -73,3 +73,22 @@ will be resolved to
 }
 
 ```
+
+## `$join` keyword
+
+Joins all items of an array into one value. JSON pointer are resolved before concatenation
+
+Example use: 
+```javascript
+{
+    host: 'localhost',
+    listen: 3000,
+    url: {$join: [
+        'http://',
+        {$ref: '#/host'},
+        ':'
+        {$ref: '#/listen'},
+    ]}
+}
+
+```
