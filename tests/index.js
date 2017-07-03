@@ -23,6 +23,18 @@ chai.should();
 describe('Config', function() {
     before(function() {
         this.configFileContent = `{
+            apps: { //position matter
+                s2s: {
+                    listen: {$ref: '#/listen/public'},
+                    baseUrl: {$join: [
+                        {$ref: '#/proxy/public/protocol'},
+                        "://",
+                        {$ref: '#/proxy/public/host'},
+                        ':',
+                        {$ref: '#/apps/s2s/listen'},
+                    ]}
+                }
+            },
             baseUrl: '127.0.0.1',
             failOnErr: false, // a property with false value should be on top of the tree
             pointer: {$ref: '#/couchbase'},
@@ -37,9 +49,15 @@ describe('Config', function() {
                     }
                 }
             },
-            listen: {
-                public: '127.0.0.1:3000',
-                private: '127.0.0.1:3001',
+            listen: { //position matter
+                public: '4000',
+                private: '4001',
+            },
+            proxy: { // position matter, should be after apps & listen sections
+                public: {
+                    host: {$ref: '#/baseUrl'},
+                    protocol: 'http'
+                }
             }
         }`;
 
@@ -118,7 +136,7 @@ describe('Config', function() {
         });
 
         describe('$getFileOptions', function() {
-            it('should return loaded json5 file for given file path with resolved json pointers', function() {
+            it('should return loaded json5 file for given file path with resolved json keywords ($ref, $join, etc..)', function() {
                 var path = `${this.tmpDir.name}/config/config.json5`;
                 var data = this.config.$getFileOptions(path);
                 var expected = _merge({}, this.configData);
@@ -126,6 +144,14 @@ describe('Config', function() {
                 expected.memcached = {
                     hosts: ['127.0.0.1']
                 };
+                expected.proxy = {public: {
+                    host: '127.0.0.1',
+                    protocol: 'http'
+                }};
+                expected.apps = {s2s: {
+                    baseUrl: 'http://127.0.0.1:4000',
+                    listen: '4000'
+                }};
                 data.should.be.eql(expected);
             });
 
@@ -394,6 +420,18 @@ describe('Config', function() {
                     some: {
                         new: {
                             option: 'value'
+                        }
+                    },
+                    proxy: {
+                        public: {
+                            host: '127.0.0.1',
+                            protocol: 'http'
+                        }
+                    },
+                    apps: {
+                        s2s: {
+                            baseUrl: 'http://127.0.0.1:4000',
+                            listen: '4000'
                         }
                     }
                 });
