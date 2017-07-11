@@ -489,6 +489,15 @@ describe('Config', function() {
                 provider.should.be.instanceof(nconf.Provider);
                 provider.get().should.be.eql(data);
             });
+
+            it('should return object with getOrFail method', function() {
+                var data = {
+                    some: 'value'
+                };
+                var provider = this.config.createLiteralProvider(data);
+                provider.should.be.instanceof(nconf.Provider);
+                provider.should.have.property('getOrFail').that.is.a('function');
+            });
         });
     });
 
