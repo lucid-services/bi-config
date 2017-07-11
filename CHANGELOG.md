@@ -1,4 +1,4 @@
-## FUTURE
+## 1.1.1
 
 * [FIXED] - `createLiteralProvider` should return config object with the `getOrFail` method
 
