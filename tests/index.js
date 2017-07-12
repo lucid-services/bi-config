@@ -315,7 +315,7 @@ describe('Config', function() {
 
         describe('initialize', function() {
             it('should setup default config object', function() {
-                var defaults = this.config.nconf.stores.defaults.store;
+                var defaults = this.config.stores.defaults.store;
                 defaults.should.be.eql({
                     fileConfigPath: null,
                     type: 'literal'
@@ -349,7 +349,7 @@ describe('Config', function() {
                 });
 
 
-                var defaults = this.config.nconf.stores.defaults.store;
+                var defaults = this.config.stores.defaults.store;
 
                 defaults.should.have.property('listen').that.is.eql({
                     public: 3000,
@@ -388,7 +388,7 @@ describe('Config', function() {
                 this.config.initialize();
 
 
-                var defaults = this.config.nconf.stores.defaults.store;
+                var defaults = this.config.stores.defaults.store;
                 defaults.should.be.eql({
                     baseUrl: '127.0.0.1',
                     fileConfigPath: path,
@@ -439,11 +439,11 @@ describe('Config', function() {
         });
 
         describe('get', function() {
-            before(function() {
-                this.getSpy = sinon.spy(this.config.nconf, 'get');
+            beforeEach(function() {
+                this.getSpy = sinon.spy(this.config, 'get');
             });
 
-            after(function() {
+            afterEach(function() {
                 this.getSpy.restore();
             });
 
@@ -456,15 +456,15 @@ describe('Config', function() {
         });
 
         describe('getOrFail', function() {
-            before(function() {
-                this.getSpy = sinon.spy(this.config.nconf, 'get');
+            beforeEach(function() {
+                this.getSpy = sinon.spy(this.config, 'get');
             });
 
-            after(function() {
+            afterEach(function() {
                 this.getSpy.restore();
             });
 
-            it('should call nconf.get method with provide property path', function() {
+            it('should call nconf.get method with property path', function() {
                 var propPath = 'type';
                 this.config.getOrFail(propPath);
                 this.getSpy.should.have.been.calledOnce;
