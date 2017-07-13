@@ -1,4 +1,4 @@
-## FUTURE
+## 1.2.0
 
 * [FIXED] - `require('bi-config').set` method should work
 * [ADDED] - `config.inspectIntegrity` method
