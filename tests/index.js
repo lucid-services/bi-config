@@ -1,22 +1,27 @@
-var fs           = require('fs');
-var path         = require('path');
-var rewire       = require('rewire');
-var sinon        = require('sinon');
-var chai         = require('chai');
-var sinonChai    = require("sinon-chai");
-var tmp          = require('tmp');
-var childProcess = require('child_process');
-var json5        = require('json5');
-var nconf        = require('nconf');
-var _merge       = require('lodash.merge');
+var fs             = require('fs');
+var path           = require('path');
+var rewire         = require('rewire');
+var sinon          = require('sinon');
+var chai           = require('chai');
+var chaiAsPromised = require('chai-as-promised');
+var sinonChai      = require("sinon-chai");
+var tmp            = require('tmp');
+var childProcess   = require('child_process');
+var json5          = require('json5');
+var nconf          = require('nconf');
+var _merge         = require('lodash.merge');
 
 ConfigError = require('../lib/error/configError.js');
 
 // adds .json5 loader require.extension
 require('json5/lib/require');
 
+//this makes sinon-as-promised available in sinon:
+require('sinon-as-promised');
+
 var expect = chai.expect;
 
+chai.use(chaiAsPromised);
 chai.use(sinonChai);
 chai.should();
 
@@ -497,6 +502,101 @@ describe('Config', function() {
                 var provider = this.config.createLiteralProvider(data);
                 provider.should.be.instanceof(nconf.Provider);
                 provider.should.have.property('getOrFail').that.is.a('function');
+            });
+        });
+
+        describe('setInspectionSchema', function() {
+            it('should have the setInspectionSchema method', function() {
+                this.config.should.have.property('setInspectionSchema').that.is.a('function');
+            });
+
+            it('should join received schema with currently set value', function() {
+                this.config.setInspectionSchema({
+                    prop: {$is:String},
+                    prop2: {$is:Number},
+                });
+
+                this.config.setInspectionSchema({
+                    prop2: {$is: Object},
+                    prop3: {$is: Boolean}
+                });
+
+                this.config._schema.should.be.eql({
+                    prop: {$is: String},
+                    prop2: {$is: Object},
+                    prop3: {$is: Boolean}
+                });
+            });
+
+            it('should overwrite currently set schema value', function() {
+                this.config.setInspectionSchema({
+                    prop: {$is:String},
+                    prop2: {$is:Number},
+                });
+
+                this.config.setInspectionSchema({
+                    prop3: {$is: Boolean}
+                }, true);
+
+                this.config._schema.should.be.eql({
+                    prop3: {$is: Boolean}
+                });
+            });
+        });
+
+        describe('inspectIntegrity', function() {
+            before(function() {
+                this.schema = {
+                    listen: {
+                        public: {
+                            port: {$is: Number}
+                        }
+                    },
+                    apps: {
+                        $forOwn: {
+                            listen: {$is: Number},
+                            baseUrl: {$isURL: null}
+                        }
+                    }
+                };
+            });
+
+            it('should have the inspectIntegrity method', function() {
+                this.config.should.have.property('inspectIntegrity').that.is.a('function');
+            });
+
+            it('should successfully validate config object', function() {
+                var conf = this.config.createLiteralProvider({
+                    listen: {
+                        public: {
+                            port: 3000
+                        }
+                    },
+                    apps: {
+                        public: {
+                            listen: 3000,
+                            baseUrl: 'http://127.0.0.1:3000',
+                        }
+                    }
+                });
+
+                conf.setInspectionSchema(this.schema);
+
+                return conf.inspectIntegrity().should.become(true);
+            });
+
+            it('should NOT successfully validate config object', function() {
+                var conf = this.config.createLiteralProvider({
+                    listen: {
+                        public: {
+                            port: 'invalid'
+                        }
+                    }
+                });
+
+                conf.setInspectionSchema(this.schema);
+
+                return conf.inspectIntegrity().should.be.rejectedWith(Error);
             });
         });
     });
