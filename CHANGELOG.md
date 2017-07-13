@@ -1,3 +1,8 @@
+## 1.2.0
+
+* [FIXED] - `require('bi-config').set` method should work
+* [ADDED] - `config.inspectIntegrity` method
+
 ## 1.1.1
 
 * [FIXED] - `createLiteralProvider` should return config object with the `getOrFail` method

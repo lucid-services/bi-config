@@ -1,6 +1,6 @@
 {
   "name": "bi-config",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "Generic config module",
   "main": "lib/index.js",
   "testFramework": "mocha",
@@ -19,9 +19,13 @@
     "lodash.merge": "^4.6.0",
     "lodash.set": "^4.3.2",
     "nconf": "0.8.*",
+    "bluebird": "^3.4.6",
+    "bi-json-inspector": "^1.0.0-rc.4",
     "yargs": "^7.1.0"
   },
   "devDependencies": {
+    "sinon-as-promised": "^4.0.0",
+    "chai-as-promised": "^5.3.0",
     "chai": "^3.5.0",
     "istanbul": "^0.4.3",
     "mocha": "^2.5.3",
