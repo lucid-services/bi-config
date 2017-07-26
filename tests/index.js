@@ -505,6 +505,35 @@ describe('Config', function() {
             });
         });
 
+        describe('createMemoryProvider', function() {
+            it('should return new Provider object with provided config data', function() {
+                var data = {
+                    some: 'value'
+                };
+                var provider = this.config.createMemoryProvider(data);
+                provider.should.be.instanceof(nconf.Provider);
+                provider.get().should.be.eql(data);
+            });
+
+            it('should return object with getOrFail method', function() {
+                var data = {
+                    some: 'value'
+                };
+                var provider = this.config.createMemoryProvider(data);
+                provider.should.be.instanceof(nconf.Provider);
+                provider.should.have.property('getOrFail').that.is.a('function');
+            });
+
+            it('should set property in the config store', function() {
+                var data = {
+                    some: 'value'
+                };
+                var provider = this.config.createMemoryProvider(data);
+                provider.set('prop', 'prop');
+                provider.get('prop').should.be.equal('prop');
+            });
+        });
+
         describe('setInspectionSchema', function() {
             it('should have the setInspectionSchema method', function() {
                 this.config.should.have.property('setInspectionSchema').that.is.a('function');

@@ -1,6 +1,7 @@
 ## FUTURE
 
 * [FIXED] - `inspectIntegrity` method should return `false` if no validation schema is set
+* [ADDED] - `Config.prototype.createMemoryProvider`  method
 
 ## 1.2.0
 
