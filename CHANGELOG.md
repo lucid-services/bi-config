@@ -1,3 +1,7 @@
+## FUTURE
+
+* [FIXED] - `inspectIntegrity` method should return `false` if no validation schema is set
+
 ## 1.2.0
 
 * [FIXED] - `require('bi-config').set` method should work
