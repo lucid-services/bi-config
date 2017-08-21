@@ -1,5 +1,6 @@
 ## FUTURE
 
+* [FIXED] - `Config` constructor should accept `data` argument when `memory` store is used
 * [FIXED] - `inspectIntegrity` method should return `false` if no validation schema is set
 * [ADDED] - `Config.prototype.createMemoryProvider`  method
 
