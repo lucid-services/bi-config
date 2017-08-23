@@ -1,3 +1,7 @@
+## FUTURE
+
+* [REMOVED] - handling of shell process arguments (the arguments are processed directly by bi-service@1.0.0)
+
 ## 1.2.1
 
 * [FIXED] - `Config` constructor should accept `data` argument when `memory` store is used
