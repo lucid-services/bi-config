@@ -77,8 +77,9 @@ describe('Config', function() {
         var tmpDir = this.tmpDir = tmp.dirSync({unsafeCleanup: true});
 
         fs.mkdirSync(`${tmpDir.name}/config`);
+        fs.mkdirSync(`${tmpDir.name}/config/production`);
         fs.writeFileSync(
-            `${tmpDir.name}/config/config.json5`,
+            `${tmpDir.name}/config/production/config.json5`,
             json5.stringify(this.configData, null, 4)
         );
     });
@@ -86,7 +87,7 @@ describe('Config', function() {
     beforeEach(function() {
         this.nodeEnvBck = process.env.NODE_ENV;
         this.config = rewire('../lib/index.js');
-        this.config.initialize({fileConfigPath: `${this.tmpDir.name}/config/config.json5`});
+        this.config.initialize({fileConfigPath: `${this.tmpDir.name}/config/production/config.json5`});
     });
 
     afterEach(function() {
@@ -130,14 +131,14 @@ describe('Config', function() {
 
                 this.processCwdStub.returns(cwd);
                 this.config.$getDefaultConfigPath().should.be.equal(
-                    `${cwd}/config/config.json5`
+                    `${cwd}/config/production/config.json5`
                 );
             });
         });
 
         describe('$getFileOptions', function() {
             it('should return loaded json5 file for given file path with resolved json keywords ($ref, $join, etc..)', function() {
-                var path = `${this.tmpDir.name}/config/config.json5`;
+                var path = `${this.tmpDir.name}/config/production/config.json5`;
                 var data = this.config.$getFileOptions(path);
                 var expected = _merge({}, this.configData);
                 expected.pointer = expected.couchbase;
@@ -156,7 +157,7 @@ describe('Config', function() {
             });
 
             it('should set the `hasFileConfig` option to true when the file config is loaded', function() {
-                var path = `${this.tmpDir.name}/config/config.json5`;
+                var path = `${this.tmpDir.name}/config/production/config.json5`;
                 this.config.$getFileOptions(path);
                 this.config.hasFileConfig.should.be.equal(true);
             });
@@ -178,7 +179,7 @@ describe('Config', function() {
             });
 
             it('should call path.resolve with provided config path', function() {
-                var cfgPath = `../config/config.json5`;
+                var cfgPath = `../config/production/config.json5`;
                 var pathResolveSpy = sinon.spy(path, 'resolve');
                 this.config.$getFileOptions(cfgPath);
                 pathResolveSpy.should.have.been.calledWithExactly(cfgPath);
@@ -211,8 +212,6 @@ describe('Config', function() {
             });
 
             it('should overwrite config options by those passed to the method as the argument', function() {
-                var path = `${this.tmpDir.name}/config/config.json5`;
-
                 this.config.__set__({
                     'process.env.NODE_ENV': 'production'
                 });
