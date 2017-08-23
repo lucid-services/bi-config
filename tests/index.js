@@ -13,9 +13,6 @@ var _merge         = require('lodash.merge');
 
 ConfigError = require('../lib/error/configError.js');
 
-// adds .json5 loader require.extension
-require('json5/lib/require');
-
 //this makes sinon-as-promised available in sinon:
 require('sinon-as-promised');
 
@@ -80,29 +77,28 @@ describe('Config', function() {
         var tmpDir = this.tmpDir = tmp.dirSync({unsafeCleanup: true});
 
         fs.mkdirSync(`${tmpDir.name}/config`);
+        fs.mkdirSync(`${tmpDir.name}/config/production`);
         fs.writeFileSync(
-            `${tmpDir.name}/config/config.json5`,
+            `${tmpDir.name}/config/production/config.json5`,
             json5.stringify(this.configData, null, 4)
         );
     });
+
+    beforeEach(function() {
+        this.nodeEnvBck = process.env.NODE_ENV;
+        this.config = rewire('../lib/index.js');
+        this.config.initialize({fileConfigPath: `${this.tmpDir.name}/config/production/config.json5`});
+    });
+
+    afterEach(function() {
+        process.env.NODE_ENV = this.nodeEnvBck;
+    });
+
 
     describe('as node module', function() {
         before(function() {
             this.processCwdStub = sinon.stub(process, 'cwd');
             this.processCwdStub.returns(this.tmpDir.name);
-        });
-
-        beforeEach(function() {
-            this.nodeEnvBck = process.env.NODE_ENV;
-            this.processArgvBck = process.argv;
-
-            process.argv = [];
-            this.config = rewire('../lib/index.js');
-        });
-
-        afterEach(function() {
-            process.env.NODE_ENV = this.nodeEnvBck;
-            process.argv = this.processArgvBck;
         });
 
         after(function() {
@@ -133,16 +129,16 @@ describe('Config', function() {
 
                 process.env.NODE_ENV = env;
 
-                this.processCwdStub.returns();
+                this.processCwdStub.returns(cwd);
                 this.config.$getDefaultConfigPath().should.be.equal(
-                    `${cwd}/config/config.json5`
+                    `${cwd}/config/production/config.json5`
                 );
             });
         });
 
         describe('$getFileOptions', function() {
             it('should return loaded json5 file for given file path with resolved json keywords ($ref, $join, etc..)', function() {
-                var path = `${this.tmpDir.name}/config/config.json5`;
+                var path = `${this.tmpDir.name}/config/production/config.json5`;
                 var data = this.config.$getFileOptions(path);
                 var expected = _merge({}, this.configData);
                 expected.pointer = expected.couchbase;
@@ -161,7 +157,7 @@ describe('Config', function() {
             });
 
             it('should set the `hasFileConfig` option to true when the file config is loaded', function() {
-                var path = `${this.tmpDir.name}/config/config.json5`;
+                var path = `${this.tmpDir.name}/config/production/config.json5`;
                 this.config.$getFileOptions(path);
                 this.config.hasFileConfig.should.be.equal(true);
             });
@@ -183,7 +179,7 @@ describe('Config', function() {
             });
 
             it('should call path.resolve with provided config path', function() {
-                var cfgPath = `../config/config.json5`;
+                var cfgPath = `../config/production/config.json5`;
                 var pathResolveSpy = sinon.spy(path, 'resolve');
                 this.config.$getFileOptions(cfgPath);
                 pathResolveSpy.should.have.been.calledWithExactly(cfgPath);
@@ -207,143 +203,17 @@ describe('Config', function() {
             });
         });
 
-        describe('$getShellOptions', function() {
-            it('should throw a ConfigError when invalid number of arguments is provided', function() {
-                this.config.__set__({
-                    argv: {
-                        _: [
-                            'listen.public'
-                        ]
-                    }
-                });
-
-                function test() {
-                    this.config.$getShellOptions();
-                }
-
-                expect(test.bind(this)).to.throw(ConfigError);
-            });
-
-            it('should set the `hasShellPositionalArgs` flag if there is at least one pair of positioinal arguments', function() {
-                this.config.__set__({
-                    argv: {
-                        _: [
-                            'listen.public',
-                            '3000'
-                        ]
-                    }
-                });
-
-                this.config.$getShellOptions();
-                this.config.hasShellPositionalArgs.should.be.equal(true);
-            });
-
-            it('should return an object', function() {
-                this.config.__set__({
-                    argv: {
-                        _: []
-                    }
-                });
-
-                this.config.$getShellOptions().should.be.eql({});
-            });
-
-            it('should return an object with expected options set', function() {
-                this.config.__set__({
-                    argv: {
-                        _: [
-                            'listen.public',
-                            3000,
-                            'listen.private',
-                            '3001',
-                            'couchbase',
-                            "{host: 'localhost', buckets: {}}"
-                        ]
-                    }
-                });
-
-                this.config.$getShellOptions().should.be.eql({
-                    listen: {
-                        public: 3000,
-                        private: 3001,
-                    },
-                    couchbase: {
-                        host: 'localhost',
-                        buckets: {}
-                    }
-                });
-            });
-
-            it('should return an object with correct `config` option', function() {
-                this.config.__set__({
-                    argv: {
-                        _: [
-                            'fileConfigPath',
-                            '"incorrect/config/option"'
-                        ],
-                        config: 'path/to/config/file'
-                    }
-                });
-
-                this.config.$getShellOptions().should.be.eql({
-                    fileConfigPath: 'path/to/config/file'
-                });
-            });
-
-            it('should return an object with correct `config` option (2)', function() {
-                this.config.__set__({
-                    argv: {
-                        _: [],
-                        'parse-pos-args': false,
-                        config: 'path/to/config/file'
-                    }
-                });
-
-                this.config.$getShellOptions().should.be.eql({
-                    fileConfigPath: 'path/to/config/file'
-                });
-            });
-
-            it('should not include reserved `config` option if included as a positional argument', function() {
-                this.config.__set__({
-                    argv: {
-                        _: [
-                            'fileConfigPath',
-                            '"incorrect/config/option"'
-                        ]
-                    }
-                });
-
-                this.config.$getShellOptions().should.be.eql({});
-            });
-        });
-
         describe('initialize', function() {
             it('should setup default config object', function() {
+                //this.config.initialize();
                 var defaults = this.config.stores.defaults.store;
-                defaults.should.be.eql({
-                    fileConfigPath: null,
-                    type: 'literal'
-                });
+                defaults.should.have.property('fileConfigPath').that.is.a('string');
+                defaults.should.have.property('type', 'literal');
             });
 
             it('should overwrite config options by those passed to the method as the argument', function() {
-                var path = `${this.tmpDir.name}/config/config.json5`;
-
                 this.config.__set__({
                     'process.env.NODE_ENV': 'production'
-                });
-                this.config.__set__({
-                    argv: {
-                        _: [
-                            'couchbase.host',
-                            '"127.0.0.1:8091"',
-                            'listen',
-                            '{public: 3000, private: 3001}',
-                            'some.new.option',
-                            '"value"'
-                        ]
-                    }
                 });
 
                 this.config.initialize({
@@ -356,87 +226,12 @@ describe('Config', function() {
 
                 var defaults = this.config.stores.defaults.store;
 
-                defaults.should.have.property('listen').that.is.eql({
-                    public: 3000,
-                    private: 3001
-                });
                 defaults.should.have.property('failOnErr').that.is.eql(true);
                 defaults.should.have.property('couchbase').that.is.eql({
                     host: '127.0.0.1:9999',
                     buckets: {
                         main: {
                             bucket: 'test'
-                        }
-                    }
-                });
-            });
-
-            it('should overwrite file config options by those defined as shell positional arguments', function() {
-                var path = `${this.tmpDir.name}/config/config.json5`;
-
-                this.config.__set__({
-                    'process.env.NODE_ENV': 'production'
-                });
-                this.config.__set__({
-                    argv: {
-                        _: [
-                            'couchbase.host',
-                            '"127.0.0.1:8091"',
-                            'listen',
-                            '{public: 3000, private: 3001}',
-                            'some.new.option',
-                            '"value"'
-                        ]
-                    }
-                });
-
-                this.config.initialize();
-
-
-                var defaults = this.config.stores.defaults.store;
-                defaults.should.be.eql({
-                    baseUrl: '127.0.0.1',
-                    fileConfigPath: path,
-                    type: 'literal',
-                    couchbase: {
-                        host: '127.0.0.1:8091',
-                        buckets: {
-                            main: {
-                                bucket: 'test'
-                            }
-                        }
-                    },
-                    memcached: {
-                        hosts: ['127.0.0.1']
-                    },
-                    pointer: {
-                        host: 'localhost',
-                        buckets: {
-                            main: {
-                                bucket: 'test'
-                            }
-                        }
-                    },
-                    failOnErr: false,
-                    listen: {
-                        public: 3000,
-                        private: 3001,
-                    },
-                    some: {
-                        new: {
-                            option: 'value'
-                        }
-                    },
-                    proxy: {
-                        public: {
-                            host: '127.0.0.1',
-                            protocol: 'http'
-                        }
-                    },
-                    apps: {
-                        s2s: {
-                            baseUrl: 'http://127.0.0.1:4000',
-                            listen: '4000'
                         }
                     }
                 });
@@ -470,7 +265,7 @@ describe('Config', function() {
             });
 
             it('should call nconf.get method with property path', function() {
-                var propPath = 'type';
+                var propPath = 'listen';
                 this.config.getOrFail(propPath);
                 this.getSpy.should.have.been.calledOnce;
                 this.getSpy.should.have.been.calledWith(propPath);
@@ -534,41 +329,47 @@ describe('Config', function() {
             });
         });
 
+        describe('getInspectionSchema', function() {
+            it('should have the getInspectionSchema method', function() {
+                this.config.should.have.property('getInspectionSchema').that.is.a('function');
+            });
+
+            it('should return current "config_schema" ajv schema', function() {
+                var schema = {
+                    type: 'integer'
+                };
+
+                this.config.setInspectionSchema(schema);
+                this.config.getInspectionSchema().should.be.eql(schema);
+            });
+        });
+
         describe('setInspectionSchema', function() {
             it('should have the setInspectionSchema method', function() {
                 this.config.should.have.property('setInspectionSchema').that.is.a('function');
             });
 
-            it('should join received schema with currently set value', function() {
-                this.config.setInspectionSchema({
-                    prop: {$is:String},
-                    prop2: {$is:Number},
-                });
-
-                this.config.setInspectionSchema({
-                    prop2: {$is: Object},
-                    prop3: {$is: Boolean}
-                });
-
-                this.config._schema.should.be.eql({
-                    prop: {$is: String},
-                    prop2: {$is: Object},
-                    prop3: {$is: Boolean}
-                });
-            });
-
             it('should overwrite currently set schema value', function() {
                 this.config.setInspectionSchema({
-                    prop: {$is:String},
-                    prop2: {$is:Number},
+                    type: 'object',
+                    properties: {
+                        prop: {type: 'string'},
+                        prop2: {type: "integer"}
+                    }
                 });
 
                 this.config.setInspectionSchema({
-                    prop3: {$is: Boolean}
-                }, true);
+                    type: 'object',
+                    properties: {
+                        prop3: {type: "boolean"}
+                    }
+                });
 
-                this.config._schema.should.be.eql({
-                    prop3: {$is: Boolean}
+                this.config.getInspectionSchema().should.be.eql({
+                    type: 'object',
+                    properties: {
+                        prop3: {type: "boolean"}
+                    }
                 });
             });
         });
@@ -576,15 +377,26 @@ describe('Config', function() {
         describe('inspectIntegrity', function() {
             before(function() {
                 this.schema = {
-                    listen: {
-                        public: {
-                            port: {$is: Number}
-                        }
-                    },
-                    apps: {
-                        $forOwn: {
-                            listen: {$is: Number},
-                            baseUrl: {$isURL: null}
+                    type: 'object',
+                    properties: {
+                        listen: {
+                            type: 'object',
+                            additionalProperties: {
+                                type: 'object',
+                                properties: {
+                                    port: {type: 'integer'}
+                                }
+                            }
+                        },
+                        apps: {
+                            type: 'object',
+                            additionalProperties: {
+                                type: 'object',
+                                properties: {
+                                    listen: {type: 'integer'},
+                                    baseUrl: {type: 'string', format: 'uri'}
+                                }
+                            }
                         }
                     }
                 };
@@ -626,162 +438,6 @@ describe('Config', function() {
                 conf.setInspectionSchema(this.schema);
 
                 return conf.inspectIntegrity().should.be.rejectedWith(Error);
-            });
-        });
-    });
-
-    describe('as cli app', function() {
-        before(function() {
-            this.spawn = spawn;
-
-            function spawn(args) {
-                var cmd = path.normalize(__dirname + '/../lib/index.js');
-                args.unshift(cmd);
-
-                var result = childProcess.spawnSync('node', args, {
-                    cwd: this.tmpDir.name,
-                    env: {
-                        NODE_ENV: 'production'
-                    }
-                });
-
-                if (result.error) {
-                    throw result.error;
-                }
-
-                return result;
-            }
-        });
-
-        describe('--get-conf, -g option', function() {
-            it('should print option value', function() {
-                var result = this.spawn([
-                    '--get-conf',
-                    'couchbase.buckets'
-                ]);
-
-                var stdout = json5.parse(result.stdout.toString());
-                result.status.should.be.equal(0);
-                stdout.should.be.eql({
-                    main: {
-                        bucket: 'test'
-                    }
-                });
-            });
-
-            it('should print option value', function() {
-                var result = this.spawn([
-                    '-g',
-                    'failOnErr'
-                ]);
-
-                var stdout = json5.parse(result.stdout.toString());
-                result.status.should.be.equal(0);
-                stdout.should.be.equal(false);
-            });
-
-            it('should exit with 1 and print "undefined" when there is not such option', function() {
-                var result = this.spawn([
-                    '-g',
-                    'some.options.which.does.not.exist'
-                ]);
-
-                result.status.should.be.equal(1);
-                result.stderr.toString().should.be.equal('undefined\n');
-            });
-        });
-
-        describe('--json5 option', function() {
-            it('should print json data in json5 format', function() {
-                var result = this.spawn([
-                    '--get-conf',
-                    'couchbase.buckets',
-                    '--json5'
-                ]);
-
-                var stdout = result.stdout.toString();
-                result.status.should.be.equal(0);
-                stdout.should.be.equal('{\n' +
-                '    main: {\n'              +
-                '        bucket: "test"\n'   +
-                '    }\n'                    +
-                '}\n')
-            });
-        });
-
-        describe('--offset option', function() {
-            it('should print json data with correct space offset set', function() {
-                var result = this.spawn([
-                    '--get-conf',
-                    'couchbase.buckets',
-                    '--offset',
-                    '2'
-                ]);
-
-                var stdout = result.stdout.toString();
-                result.status.should.be.equal(0);
-                stdout.should.be.equal('{\n' +
-                '  "main": {\n'              +
-                '    "bucket": "test"\n'     +
-                '  }\n'                      +
-                '}\n')
-            });
-
-            it('should replace space character with given string value in JSON output', function() {
-                var result = this.spawn([
-                    '--get-conf',
-                    'couchbase.buckets',
-                    '--offset',
-                    '__'
-                ]);
-
-                var stdout = result.stdout.toString();
-                result.status.should.be.equal(0);
-                stdout.should.be.equal('{\n' +
-                '__"main": {\n'              +
-                '____"bucket": "test"\n'     +
-                '__}\n'                      +
-                '}\n')
-            });
-        });
-
-        describe('--parse-pos-args option', function() {
-            it('should not parse positional arguments from shell when the option is set to false', function() {
-                var result = this.spawn([
-                    '--parse-pos-args',
-                    false,
-                    '--get-conf',
-                    'couchbase.host',
-                    'couchbase.host',
-                    'valuewhichwillnotbeset'
-                ]);
-
-                result.status.should.be.equal(0);
-                result.stdout.toString().should.be.equal('localhost\n');
-            });
-        });
-
-        describe('shell positional arguments', function() {
-            it('(positional args) should overwrite file config options', function() {
-                var result = this.spawn([
-                    '-g',
-                    'couchbase.host',
-                    'couchbase.host',
-                    '"127.0.0.3"'
-                ]);
-
-                result.status.should.be.equal(0);
-                result.stdout.toString().should.be.equal('127.0.0.3\n');
-            });
-
-            it('should exit with 1 when we provide invalid number of positional args', function() {
-                var result = this.spawn([
-                    'couchbase.host',
-                    '"127.0.0.3"',
-                    'another.config.option.with.no.value'
-                ]);
-
-                result.status.should.be.equal(1);
             });
         });
     });
