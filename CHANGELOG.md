@@ -1,4 +1,4 @@
-## FUTURE
+## 2.0.0-alpha
 
 * [CHANGED] - config file for `production` environment has been moved to 'config/production/' subdirectory
 * [REMOVED] - handling of shell process arguments (the arguments are processed directly by bi-service@1.0.0)
