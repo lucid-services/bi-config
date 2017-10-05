@@ -1,37 +1,15 @@
-# Config module
-
-
-Loads config file from path which defaults to `/config/NODE_ENV/config.json5`. `NODE_ENV` defaults to `development` string value.
-To the above rule an exeption applies for default production config file path which is expected to be located at `config/config.json5` - It's searched for when `NODE_ENV='production'`
-
-## How to use
-
-example config in `config/development/config.json5`
-```json
-{
-  "global": {
-    "listenPort": 1234
-  }
-}
-```
-
+Configuration plugin for [bi-service]()  
+Loads a config file from a fs path which defaults to `/config/NODE_ENV/config.json5`.  
+`NODE_ENV` defaults to `development` string value.  
 Config values can be either in valid `JSON` or in more lighweight [JSON5](https://github.com/json5/json5) format.
 
 Example use:
 ```js
-    var config = require('bi-config');
+    const config = require('bi-config');
+    config.initialize();
     //...stuff
-    var listenPort = config.get("global:listenPort");
+    var listenPort = config.get("path:to:nested:option");
 ```
-
-## CLI
-
-```bash
-
-node app --help
-```
-
-CLI config options overwrites those defined in config file.
 
 ## JSON pointer
 
