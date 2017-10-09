@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/fogine/bi-config.svg?branch=master)](https://travis-ci.org/fogine/bi-config)  
+
 Configuration plugin for [bi-service]()  
 Loads a config file from a fs path which defaults to `/config/NODE_ENV/config.json5`.  
 `NODE_ENV` defaults to `development` string value.  
