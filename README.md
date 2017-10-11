@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/BohemiaInteractive/bi-config.svg?branch=master)](https://travis-ci.org/BohemiaInteractive/bi-config)  
 
-Configuration plugin for [bi-service]()  
+Configuration plugin for [bi-service](https://github.com/BohemiaInteractive/bi-service)  
 Loads a config file from a fs path which defaults to `/config/NODE_ENV/config.json5`.  
 `NODE_ENV` defaults to `development` string value.  
 Config values can be either in valid `JSON` or in more lighweight [JSON5](https://github.com/json5/json5) format.
