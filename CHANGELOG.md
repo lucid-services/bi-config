@@ -1,4 +1,4 @@
-## FUTURE
+## 2.0.0
 
 * [ADDED] - `Config.prototype.isInitialized` method
 
