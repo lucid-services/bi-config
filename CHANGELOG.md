@@ -1,3 +1,7 @@
+## FUTURE
+
+* [ADDED] - `Config.prototype.isInitialized` method
+
 ## 2.0.0-alpha
 
 * [CHANGED] - config file for `production` environment has been moved to 'config/production/' subdirectory
