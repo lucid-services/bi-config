@@ -203,6 +203,18 @@ describe('Config', function() {
             });
         });
 
+        describe('isInitialized', function() {
+            it('should return false', function() {
+                let config = new this.config.Config();
+                config.isInitialized().should.be.equal(false);
+            });
+
+            it('should return true', function() {
+                this.config.initialize();
+                this.config.isInitialized().should.be.equal(true);
+            });
+        });
+
         describe('initialize', function() {
             it('should setup default config object', function() {
                 //this.config.initialize();
