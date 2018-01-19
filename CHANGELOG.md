@@ -1,3 +1,5 @@
+## 2.0.1
+
 ## 2.0.0
 
 * [ADDED] - `Config.prototype.isInitialized` method
