@@ -1,11 +1,9 @@
 [![Build Status](https://travis-ci.org/BohemiaInteractive/bi-config.svg?branch=master)](https://travis-ci.org/BohemiaInteractive/bi-config)  
 
 Configuration plugin for [bi-service](https://github.com/BohemiaInteractive/bi-service)  
-Loads a config file from a fs path which defaults to `/config/NODE_ENV/config.json5`.  
-`NODE_ENV` defaults to `development` string value.  
-Config values can be either in valid `JSON` or in more lighweight [JSON5](https://github.com/json5/json5) format.
+Loads an application config file from a fs path which defaults to `<project_root>/config/config.js`.
 
-Example use:
+Example use (`bi-service` is responsible for config initialization):
 ```js
     const config = require('bi-config');
     config.initialize();
@@ -13,62 +11,8 @@ Example use:
     var listenPort = config.get("path:to:nested:option");
 ```
 
-## JSON pointer
+The config file can be also in valid `json` format given that you provide the file path to the `bi-service` application:
 
-Supports pointers only within a file (does not support referencing other files from within a file)
-
-Example use:
-
-```javascript
-{
-    public: {
-        storage: {
-            couchbase: {$ref: '#/storage/couchbase'}
-        }
-    },
-    storage: {
-        couchbase: {
-            host: '127.0.0.1'
-        }
-    }
-}
-```
-
-will be resolved to
-
-```javascript
-{
-    public: {
-        storage: {
-            couchbase: {
-                host: '127.0.0.1'
-            }
-        }
-    },
-    storage: {
-        couchbase: {
-            host: '127.0.0.1'
-        }
-    }
-}
-
-```
-
-## `$join` keyword
-
-Joins all items of an array into one value. JSON pointer are resolved before concatenation
-
-Example use: 
-```javascript
-{
-    host: 'localhost',
-    listen: 3000,
-    url: {$join: [
-        'http://',
-        {$ref: '#/host'},
-        ':'
-        {$ref: '#/listen'},
-    ]}
-}
-
+```bash
+project-root> ./node_modules/.bin/bi-service run --config ./config/config.json
 ```
