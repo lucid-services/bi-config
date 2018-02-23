@@ -24,44 +24,23 @@ chai.should();
 
 describe('Config', function() {
     before(function() {
-        this.configFileContent = `{
-            apps: { //position matter
+
+        this.configFileContent = `
+        const ENV = process.env;
+        module.exports = {
+            apps: {
                 s2s: {
-                    listen: {$ref: '#/listen/public'},
-                    baseUrl: {$join: [
-                        {$ref: '#/proxy/public/protocol'},
-                        "://",
-                        {$ref: '#/proxy/public/host'},
-                        ':',
-                        {$ref: '#/apps/s2s/listen'},
-                    ]}
+                    listen: ENV.S2S_PORT,
+                    baseUrl: ENV.PRIVATE_VHOST_PROTOCOL + ENV.PRIVATE_VHOST + ENV.S2S_PORT,
                 }
             },
             baseUrl: '127.0.0.1',
-            failOnErr: false, // a property with false value should be on top of the tree
-            pointer: {$ref: '#/couchbase'},
-            memcached: {
-                hosts: [{$ref: '#/baseUrl'}]
-            },
-            couchbase: {
-                host: 'localhost',
-                buckets: {
-                    main: {
-                        bucket: 'test'
-                    }
-                }
-            },
-            listen: { //position matter
-                public: '4000',
-                private: '4001',
-            },
-            proxy: { // position matter, should be after apps & listen sections
-                public: {
-                    host: {$ref: '#/baseUrl'},
-                    protocol: 'http'
-                }
+            failOnErr: false,
+            listen: {
+                public: 4000,
+                private: 4001
             }
-        }`;
+        };`;
 
         this.configFileContent = this.configFileContent.split('\n').reduce(function(newStr, line) {
             if (!line) {
@@ -71,29 +50,22 @@ describe('Config', function() {
             return newStr;
         }, '')
 
-        this.configData = json5.parse(this.configFileContent);
-
         tmp.setGracefulCleanup();
         var tmpDir = this.tmpDir = tmp.dirSync({unsafeCleanup: true});
 
         fs.mkdirSync(`${tmpDir.name}/config`);
-        fs.mkdirSync(`${tmpDir.name}/config/production`);
         fs.writeFileSync(
-            `${tmpDir.name}/config/production/config.json5`,
-            json5.stringify(this.configData, null, 4)
+            `${tmpDir.name}/config/config.js`,
+            this.configFileContent
         );
+
+        this.configData = require(`${tmpDir.name}/config/config.js`);
     });
 
     beforeEach(function() {
-        this.nodeEnvBck = process.env.NODE_ENV;
         this.config = rewire('../lib/index.js');
-        this.config.initialize({fileConfigPath: `${this.tmpDir.name}/config/production/config.json5`});
+        this.config.initialize({fileConfigPath: `${this.tmpDir.name}/config/config.js`});
     });
-
-    afterEach(function() {
-        process.env.NODE_ENV = this.nodeEnvBck;
-    });
-
 
     describe('as node module', function() {
         before(function() {
@@ -109,55 +81,27 @@ describe('Config', function() {
             this.config.should.have.property('nconf').that.is.an.instanceof(nconf.Provider);
         });
 
-        describe('$getNodeEnvVar', function() {
-            it('should return NODE_ENV variable if set', function() {
-                var env = 'production';
-                process.env.NODE_ENV = env;
-                this.config.$getNodeEnvVar().should.be.equal(env);
-            });
-
-            it('should return default `development` value if the environment value is not set', function() {
-                delete process.env.NODE_ENV;
-                this.config.$getNodeEnvVar().should.be.equal('development');
-            });
-        });
-
         describe('$getDefaultConfigPath', function() {
             it('should return default config absolute file path', function() {
                 var cwd = this.tmpDir.name;
-                var env = 'production';
-
-                process.env.NODE_ENV = env;
 
                 this.processCwdStub.returns(cwd);
                 this.config.$getDefaultConfigPath().should.be.equal(
-                    `${cwd}/config/production/config.json5`
+                    `${cwd}/config/config.js`
                 );
             });
         });
 
         describe('$getFileOptions', function() {
-            it('should return loaded json5 file for given file path with resolved json keywords ($ref, $join, etc..)', function() {
-                var path = `${this.tmpDir.name}/config/production/config.json5`;
+            it('should return configuration for given config.js file path', function() {
+                var path = `${this.tmpDir.name}/config/config.js`;
                 var data = this.config.$getFileOptions(path);
                 var expected = _merge({}, this.configData);
-                expected.pointer = expected.couchbase;
-                expected.memcached = {
-                    hosts: ['127.0.0.1']
-                };
-                expected.proxy = {public: {
-                    host: '127.0.0.1',
-                    protocol: 'http'
-                }};
-                expected.apps = {s2s: {
-                    baseUrl: 'http://127.0.0.1:4000',
-                    listen: '4000'
-                }};
                 data.should.be.eql(expected);
             });
 
             it('should set the `hasFileConfig` option to true when the file config is loaded', function() {
-                var path = `${this.tmpDir.name}/config/production/config.json5`;
+                var path = `${this.tmpDir.name}/config/config.js`;
                 this.config.$getFileOptions(path);
                 this.config.hasFileConfig.should.be.equal(true);
             });
@@ -173,13 +117,13 @@ describe('Config', function() {
                     require: requireStub
                 });
 
-                data = this.config.$getFileOptions(`${this.tmpDir.name}/config/config.json5`);
+                data = this.config.$getFileOptions(`${this.tmpDir.name}/invalid/config.js`);
                 data.should.be.eql({});
                 this.config.hasFileConfig.should.be.equal(false);
             });
 
             it('should call path.resolve with provided config path', function() {
-                var cfgPath = `../config/production/config.json5`;
+                var cfgPath = `../config/config.js`;
                 var pathResolveSpy = sinon.spy(path, 'resolve');
                 this.config.$getFileOptions(cfgPath);
                 pathResolveSpy.should.have.been.calledWithExactly(cfgPath);
@@ -188,7 +132,7 @@ describe('Config', function() {
             });
 
             it('should throw a SyntaxError when there is a problem with parsing json5 config file', function() {
-                var configPath = `${this.tmpDir.name}/config/invalid_config.json5`;
+                var configPath = `${this.tmpDir.name}/config/invalid_config.js`;
 
                 fs.writeFileSync(
                     configPath,
@@ -217,16 +161,12 @@ describe('Config', function() {
 
         describe('initialize', function() {
             it('should setup default config object', function() {
-                //this.config.initialize();
                 var defaults = this.config.stores.defaults.store;
                 defaults.should.have.property('fileConfigPath').that.is.a('string');
                 defaults.should.have.property('type', 'literal');
             });
 
             it('should overwrite config options by those passed to the method as the argument', function() {
-                this.config.__set__({
-                    'process.env.NODE_ENV': 'production'
-                });
 
                 this.config.initialize({
                     failOnErr: true,
@@ -240,12 +180,7 @@ describe('Config', function() {
 
                 defaults.should.have.property('failOnErr').that.is.eql(true);
                 defaults.should.have.property('couchbase').that.is.eql({
-                    host: '127.0.0.1:9999',
-                    buckets: {
-                        main: {
-                            bucket: 'test'
-                        }
-                    }
+                    host: '127.0.0.1:9999'
                 });
             });
         });

@@ -1,3 +1,8 @@
+## FUTURE
+
+* [CHANGED] - dropped `json5` file format support which is replaced with plain javascript configuration file
+* [CHANGED] - by default config file is searched for at $project-root/config/config.js (`NODE_ENV` is ignored)
+
 ## 2.0.1
 
 ## 2.0.0

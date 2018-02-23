@@ -18,6 +18,10 @@
   "engines": {
       "node": ">=6.0.0"
   },
+  "repository": {
+      "type": "git",
+      "url": "https://github.com/BohemiaInteractive/bi-config"
+  },
   "license": "GPL-3.0",
   "files": [
       "lib",
@@ -28,11 +32,7 @@
   "dependencies": {
     "ajv": "^5.2.2",
     "json5": "0.5.0",
-    "lodash.forown": "^4.4.0",
-    "lodash.get": "^4.4.2",
-    "lodash.isplainobject": "^4.0.6",
     "lodash.merge": "^4.6.0",
-    "lodash.set": "^4.3.2",
     "nconf": "0.8.*",
     "bluebird": "^3.4.6"
   },
