@@ -1,6 +1,6 @@
 {
   "name": "bi-config",
-  "version": "2.0.1",
+  "version": "3.0.0-alpha",
   "description": "Service configuration provider for bi-service based apps",
   "main": "lib/index.js",
   "testFramework": "mocha",
