@@ -1,4 +1,4 @@
-## FUTURE
+## 3.0.0-alpha
 
 * [CHANGED] - dropped `json5` file format support which is replaced with plain javascript configuration file
 * [CHANGED] - by default config file is searched for at $project-root/config/config.js (`NODE_ENV` is ignored)
