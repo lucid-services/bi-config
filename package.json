@@ -1,10 +1,10 @@
 {
-  "name": "bi-config",
-  "version": "3.0.0-alpha",
-  "description": "Service configuration provider for bi-service based apps",
+  "name": "serviser-config",
+  "version": "3.0.0",
+  "description": "Service configuration provider for `serviser` apps",
   "main": "lib/index.js",
   "testFramework": "mocha",
-  "author": "Bohemia Interactive",
+  "author": "fogine",
   "contributors": [
       "fogine"
   ],
@@ -20,7 +20,7 @@
   },
   "repository": {
       "type": "git",
-      "url": "https://github.com/BohemiaInteractive/bi-config"
+      "url": "https://github.com/lucid-services/serviser-config"
   },
   "license": "GPL-3.0",
   "files": [
