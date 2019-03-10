@@ -1,4 +1,4 @@
-## FUTURE
+## 3.0.0
 
 * [CHANGED] - project renamed to `serviser-config`
 
