@@ -1,3 +1,7 @@
+## FUTURE
+
+* [CHANGED] - project renamed to `serviser-config`
+
 ## 3.0.0-alpha
 
 * [CHANGED] - dropped `json5` file format support which is replaced with plain javascript configuration file
